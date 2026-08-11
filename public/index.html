@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏎️ Mario Kart - Simulador de Corrida</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #e74c3c;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .setup-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .jogadores {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .jogador-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .jogador-card h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .personagem-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1em;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+        .personagem-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .personagem-preview {
+            text-align: center;
+            margin: 15px 0;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .personagem-preview img {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            border-radius: 10px;
+            background: #f0f0f0;
+            padding: 10px;
+        }
+
+        .personagem-preview .nome-personagem {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #2c3e50;
+        }
+
+        .atributos {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .atributo {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .atributo:last-child {
+            margin-bottom: 0;
+        }
+
+        .atributo-label {
+            color: #555;
+        }
+
+        .atributo-valor {
+            font-weight: bold;
+            color: #2980b9;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .corrida-section {
+            display: none;
+        }
+
+        .corrida-section.active {
+            display: block;
+        }
+
+        .pista {
+            background: #2c3e50;
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 20px;
+            min-height: 300px;
+        }
+
+        .placar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #34495e;
+            border-radius: 5px;
+        }
+
+        .jogador-placar {
+            text-align: center;
+            flex: 1;
+        }
+
+        .jogador-placar img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            margin-bottom: 5px;
+        }
+
+        .jogador-placar h3 {
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .pontos {
+            font-size: 2em;
+            font-weight: bold;
+            color: #f1c40f;
+        }
+
+        .vs {
+            font-size: 2em;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 0 20px;
+        }
+
+        .eventos {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .evento {
+            background: #34495e;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .evento.destaque {
+            background: #e74c3c;
+            font-weight: bold;
+        }
+
+        .evento.confronto {
+            background: #e67e22;
+        }
+
+        .evento.ponto {
+            background: #27ae60;
+        }
+
+        .resultado-final {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #f39c12, #e74c3c);
+            border-radius: 10px;
+            color: white;
+        }
+
+        .resultado-final.active {
+            display: block;
+        }
+
+        .resultado-final h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .campeao {
+            font-size: 1.5em;
+            margin: 20px 0;
+        }
+
+        .campeao img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin: 10px 0;
+        }
+
+        .novamente-btn {
+            background: white;
+            color: #e74c3c;
+            margin-top: 20px;
+        }
+
+        .novamente-btn:hover {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏎️ Mario Kart Simulator</h1>
+        
+        <!-- Seção de configuração -->
+        <div id="setupSection" class="setup-section">
+            <div class="jogadores">
+                <div class="jogador-card">
+                    <h3>🎮 Jogador 1</h3>
+                    <select class="personagem-select" id="jogador1Select" onchange="atualizarPreview(1)">
+                        <option value="">Selecione um personagem...</option>
+                    </select>
+                    <div class="personagem-preview" id="preview1">
+                        <div style="color: #999;">Selecione um personagem</div>
+                    </div>
+                    <div class="atributos" id="atributos1" style="display: none;">
+                        <div class="atributo">
+                            <span class="atributo-label">🏃 Velocidade:</span>
+                            <span class="atributo-valor" id="vel1">-</span>
+                        </div>
+                        <div class="atributo">
+                            <span class="atributo-label">🔄 Manobrabilidade:</span>
+                            <span class="atributo-valor" id="man1">-</span>
+                        </div>
+                        <div class="atributo">
+                            <span class="atributo-label">💪 Poder:</span>
+                            <span class="atributo-valor" id="pod1">-</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="jogador-card">
+                    <h3>🎮 Jogador 2</h3>
+                    <select class="personagem-select" id="jogador2Select" onchange="atualizarPreview(2)">
+                        <option value="">Selecione um personagem...</option>
+                    </select>
+                    <div class="personagem-preview" id="preview2">
+                        <div style="color: #999;">Selecione um personagem</div>
+                    </div>
+                    <div class="atributos" id="atributos2" style="display: none;">
+                        <div class="atributo">
+                            <span class="atributo-label">🏃 Velocidade:</span>
+                            <span class="atributo-valor" id="vel2">-</span>
+                        </div>
+                        <div class="atributo">
+                            <span class="atributo-label">🔄 Manobrabilidade:</span>
+                            <span class="atributo-valor" id="man2">-</span>
+                        </div>
+                        <div class="atributo">
+                            <span class="atributo-label">💪 Poder:</span>
+                            <span class="atributo-valor" id="pod2">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn" onclick="iniciarCorrida()">🏁 Iniciar Corrida!</button>
+        </div>
+
+        <!-- Seção da corrida -->
+        <div id="corridaSection" class="corrida-section">
+            <div class="pista">
+                <div class="placar">
+                    <div class="jogador-placar">
+                        <img id="gifJogador1" src="" alt="" style="display: none;">
+                        <h3 id="placarJogador1"></h3>
+                        <div class="pontos" id="pontosJogador1">0</div>
+                    </div>
+                    <div class="vs">VS</div>
+                    <div class="jogador-placar">
+                        <img id="gifJogador2" src="" alt="" style="display: none;">
+                        <h3 id="placarJogador2"></h3>
+                        <div class="pontos" id="pontosJogador2">0</div>
+                    </div>
+                </div>
+                <div class="eventos" id="eventosContainer">
+                    <div class="evento">🏁 Corrida iniciada! Aguarde as rodadas...</div>
+                </div>
+            </div>
+            <button class="btn" id="btnProximaRodada" onclick="executarRodada()" style="display: none;">
+                ▶️ Próxima Rodada
+            </button>
+        </div>
+
+        <!-- Resultado final -->
+        <div id="resultadoFinal" class="resultado-final">
+            <h2>🏆 Resultado Final!</h2>
+            <div id="mensagemCampeao"></div>
+            <div id="placarFinal"></div>
+            <button class="btn novamente-btn" onclick="reiniciarJogo()">🎮 Jogar Novamente</button>
+        </div>
+    </div>
+
+    <script>
+        let personagens = {};
+        let estadoCorrida = {
+            player1: null,
+            player2: null,
+            rodadaAtual: 0,
+            totalRodadas: 5,
+            corridaAtiva: false
+        };
+
+        // Carregar personagens do servidor
+        async function carregarPersonagens() {
+            try {
+                const response = await fetch('http://localhost:3000/api/personagens');
+                personagens = await response.json();
+                
+                // Preencher os selects
+                const select1 = document.getElementById('jogador1Select');
+                const select2 = document.getElementById('jogador2Select');
+                
+                Object.keys(personagens).forEach(key => {
+                    const option1 = document.createElement('option');
+                    option1.value = key;
+                    option1.textContent = personagens[key].nome;
+                    select1.appendChild(option1);
+                    
+                    const option2 = document.createElement('option');
+                    option2.value = key;
+                    option2.textContent = personagens[key].nome;
+                    select2.appendChild(option2);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar personagens:', error);
+            }
+        }
+
+        // Atualizar preview do personagem selecionado
+        function atualizarPreview(jogador) {
+            const select = document.getElementById(`jogador${jogador}Select`);
+            const preview = document.getElementById(`preview${jogador}`);
+            const atributos = document.getElementById(`atributos${jogador}`);
+            const key = select.value;
+            
+            if (key && personagens[key]) {
+                const p = personagens[key];
+                preview.innerHTML = `
+                    <img src="/docs/${p.gif}" alt="${p.nome}">
+                    <div class="nome-personagem">${p.nome}</div>
+                `;
+                
+                document.getElementById(`vel${jogador}`).textContent = p.velocidade;
+                document.getElementById(`man${jogador}`).textContent = p.manobrabilidade;
+                document.getElementById(`pod${jogador}`).textContent = p.poder;
+                atributos.style.display = 'block';
+            } else {
+                preview.innerHTML = '<div style="color: #999;">Selecione um personagem</div>';
+                atributos.style.display = 'none';
+            }
+        }
+
+        // Iniciar a corrida
+        async function iniciarCorrida() {
+            const jogador1Key = document.getElementById('jogador1Select').value;
+            const jogador2Key = document.getElementById('jogador2Select').value;
+            
+            if (!jogador1Key || !jogador2Key) {
+                alert('Selecione os dois personagens!');
+                return;
+            }
+            
+            if (jogador1Key === jogador2Key) {
+                alert('Os personagens devem ser diferentes!');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/corrida/iniciar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ jogador1Key, jogador2Key })
+                });
+
+                const data = await response.json();
+                
+                estadoCorrida.player1 = data.player1;
+                estadoCorrida.player2 = data.player2;
+                estadoCorrida.rodadaAtual = 0;
+                estadoCorrida.corridaAtiva = true;
+
+                // Atualizar interface
+                document.getElementById('setupSection').style.display = 'none';
+                document.getElementById('corridaSection').classList.add('active');
+                document.getElementById('resultadoFinal').classList.remove('active');
+                
+                // Atualizar placar com gifs
+                document.getElementById('placarJogador1').textContent = estadoCorrida.player1.NOME;
+                document.getElementById('placarJogador2').textContent = estadoCorrida.player2.NOME;
+                
+                const gif1 = document.getElementById('gifJogador1');
+                const gif2 = document.getElementById('gifJogador2');
+                gif1.src = `/docs/${estadoCorrida.player1.GIF}`;
+                gif2.src = `/docs/${estadoCorrida.player2.GIF}`;
+                gif1.style.display = 'block';
+                gif2.style.display = 'block';
+                
+                document.getElementById('pontosJogador1').textContent = '0';
+                document.getElementById('pontosJogador2').textContent = '0';
+                
+                document.getElementById('eventosContainer').innerHTML = 
+                    '<div class="evento">🏁 Corrida iniciada! Clique em "Próxima Rodada" para começar!</div>';
+                
+                document.getElementById('btnProximaRodada').style.display = 'block';
+                document.getElementById('btnProximaRodada').textContent = '▶️ Iniciar Rodada 1';
+
+            } catch (error) {
+                alert('Erro ao conectar com o servidor. Certifique-se de que o backend está rodando!');
+                console.error('Erro:', error);
+            }
+        }
+
+        // Executar uma rodada
+        async function executarRodada() {
+            if (!estadoCorrida.corridaAtiva) return;
+            if (estadoCorrida.rodadaAtual >= estadoCorrida.totalRodadas) return;
+
+            const btn = document.getElementById('btnProximaRodada');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/corrida/rodada', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        player1: estadoCorrida.player1,
+                        player2: estadoCorrida.player2,
+                        rodada: estadoCorrida.rodadaAtual + 1
+                    })
+                });
+
+                const data = await response.json();
+                
+                estadoCorrida.player1 = data.player1;
+                estadoCorrida.player2 = data.player2;
+                estadoCorrida.rodadaAtual = data.rodada;
+
+                // Atualizar placar
+                document.getElementById('pontosJogador1').textContent = estadoCorrida.player1.PONTOS;
+                document.getElementById('pontosJogador2').textContent = estadoCorrida.player2.PONTOS;
+
+                // Exibir eventos
+                const container = document.getElementById('eventosContainer');
+                container.innerHTML = '';
+                
+                // Adicionar evento da rodada
+                const eventoRodada = document.createElement('div');
+                eventoRodada.className = 'evento destaque';
+                eventoRodada.textContent = `🏁 Rodada ${data.rodada} - Bloco: ${data.bloco}`;
+                container.appendChild(eventoRodada);
+
+                // Adicionar eventos específicos
+                data.eventos.forEach(evento => {
+                    const divEvento = document.createElement('div');
+                    
+                    switch(evento.tipo) {
+                        case 'rolagem':
+                            divEvento.className = 'evento';
+                            divEvento.textContent = `${evento.personagem} 🎲 rolou ${evento.dado} + ${evento.atributo} (${evento.bloco}) = ${evento.total}`;
+                            break;
+                        case 'confronto':
+                            divEvento.className = 'evento confronto';
+                            divEvento.textContent = `🥊 CONFRONTO: ${evento.personagem1} vs ${evento.personagem2}!`;
+                            break;
+                        case 'resultado_confronto':
+                            divEvento.className = 'evento confronto';
+                            if (evento.empate) {
+                                divEvento.textContent = '🤝 Confronto empatado! Nenhum ponto perdido.';
+                            } else {
+                                divEvento.textContent = `${evento.vencedor} venceu o confronto! ${evento.perdedor} perdeu 1 ponto 🐢`;
+                            }
+                            break;
+                        case 'ponto':
+                            divEvento.className = 'evento ponto';
+                            divEvento.textContent = `⭐ ${evento.personagem} marcou um ponto!`;
+                            break;
+                    }
+                    
+                    container.appendChild(divEvento);
+                });
+
+                // Scroll para o final dos eventos
+                container.scrollTop = container.scrollHeight;
+
+                // Verificar se a corrida terminou
+                if (estadoCorrida.rodadaAtual >= estadoCorrida.totalRodadas) {
+                    btn.textContent = '🏆 Ver Resultado Final';
+                    btn.onclick = declararCampeao;
+                } else {
+                    btn.textContent = `▶️ Próxima Rodada (${estadoCorrida.rodadaAtual + 1}/5)`;
+                    btn.onclick = executarRodada;
+                }
+
+            } catch (error) {
+                alert('Erro ao processar rodada!');
+                console.error('Erro:', error);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // Declarar campeão
+        async function declararCampeao() {
+            try {
+                const response = await fetch('http://localhost:3000/api/corrida/campeao', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        player1: estadoCorrida.player1,
+                        player2: estadoCorrida.player2
+                    })
+                });
+
+                const data = await response.json();
+                
+                document.getElementById('corridaSection').classList.remove('active');
+                document.getElementById('resultadoFinal').classList.add('active');
+                
+                let campeaoHTML = data.campeao ? 
+                    `<div class="campeao">
+                        <img src="/docs/${data.player1.NOME === data.campeao ? data.player1.GIF : data.player2.GIF}" alt="${data.campeao}">
+                        <div>🏆 ${data.campeao} é o grande campeão! 🏆</div>
+                    </div>` : '';
+                
+                document.getElementById('mensagemCampeao').innerHTML = `
+                    <h2>${data.mensagem}</h2>
+                    ${campeaoHTML}
+                `;
+                
+                document.getElementById('placarFinal').innerHTML = `
+                    <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+                        <div>
+                            <h3>${data.player1.NOME}</h3>
+                            <p style="font-size: 2em;">${data.player1.PONTOS} pontos</p>
+                        </div>
+                        <div>
+                            <h3>${data.player2.NOME}</h3>
+                            <p style="font-size: 2em;">${data.player2.PONTOS} pontos</p>
+                        </div>
+                    </div>
+                `;
+
+                estadoCorrida.corridaAtiva = false;
+
+            } catch (error) {
+                alert('Erro ao declarar campeão!');
+                console.error('Erro:', error);
+            }
+        }
+
+        // Reiniciar jogo
+        function reiniciarJogo() {
+            document.getElementById('setupSection').style.display = 'block';
+            document.getElementById('corridaSection').classList.remove('active');
+            document.getElementById('resultadoFinal').classList.remove('active');
+            
+            document.getElementById('btnProximaRodada').style.display = 'none';
+            document.getElementById('btnProximaRodada').onclick = executarRodada;
+            
+            estadoCorrida = {
+                player1: null,
+                player2: null,
+                rodadaAtual: 0,
+                totalRodadas: 5,
+                corridaAtiva: false
+            };
+        }
+
+        // Inicializar
+        carregarPersonagens();
+    </script>
+</body>
+</html>

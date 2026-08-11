@@ -14,14 +14,12 @@ const player2 = {
     PONTOS:0,
 };
 
-
-
 // =========================================================== //
 // FUNÇÃO QUE FAZ O DADO RODAR = ASYNC
 // =========================================================== //
 
 async function rolarDados(){
-    return Math.floor(Math.random() * 6) + 1;  // Math.floor = arredondar para numero inteiro E Math.random = inserir numeros aleatorios, por padrão de 0 a 1, por isso multipliquei por 6
+    return Math.floor(Math.random() * 6) + 1;
 }
 
 // =========================================================== //
@@ -54,16 +52,33 @@ async function resultadoRolagem(nomePersonagem, bloco, resultadoDado, atributo){
   console.log(`${nomePersonagem} 🎲 rolou um dado de ${bloco} ${resultadoDado} + ${atributo} = ${resultadoDado + atributo}`)
 
 }
+
+// =========================================================== //
+// NOVA FUNÇÃO: Cria um delay usando setTimeout convertido em Promise
+// =========================================================== //
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // =========================================================== //
 // FUNÇÃO QUE FAZ ACONTECER AS RODADAS DA CORRIDA
 // =========================================================== //
 async function playRaceEngine(personagem1, personagem2){
     for(let round = 1; round <= 5; round ++){
-        console.log(`🏁 Rodada ${round}`);
+        console.log(`\n🏁 Rodada ${round}`);
+        console.log("⏳ Preparando...");
+
+        // Aguarda 2 segundos entre cada rodada (exceto na primeira)
+        if (round > 1) {
+            await delay(2000); // 2 segundos de espera
+        }
 
         //sortear bloco
         let bloco = await pegarBlocoAleatorio()
         console.log (`Bloco: ${bloco}`)
+
+        // Pequena pausa antes de rolar os dados
+        await delay(1000); // 1 segundo
 
         // rolar os dados
         let resultadoDado1 = await rolarDados()
@@ -133,27 +148,24 @@ async function playRaceEngine(personagem1, personagem2){
                 personagem2.PODER
             );
 
-            // IF TERNARIO MAIS LIMPO:
-            // personagem2.PONTOS -= resultadoPoder1 > resultadoPoder2 && personagem2.PONTOS > 0 ? 1 : 0;
             if(resultadoPoder1 > resultadoPoder2 && personagem2.PONTOS > 0 ){
                 console.log(`${personagem1.NOME} venceu este confronto! ${personagem2.NOME} perdeu 1 ponto 🐢`)
                 personagem2.PONTOS--;
             }
             
-            // IF TERNARIO MAIS LIMPO:
-            // personagem1.PONTOS -= resultadoPoder2 > resultadoPoder1 && personagem1.PONTOS > 0 ? 1 : 0;
             if(resultadoPoder2 > resultadoPoder1 && personagem1.PONTOS > 0 ){
                 console.log(`${personagem2.NOME} venceu este confronto! ${personagem1.NOME} perdeu 1 ponto 🐢`)
               personagem1.PONTOS--;
             }
 
-            // IF TERNARIO MAIS LIMPO:
-            // console.log(resultadoPoder2 === resultadoPoder1 ? "Confronto empatato! nenhum ponto foi perdido" : "")
             if(resultadoPoder2 === resultadoPoder1){
                 console.log (`Confronto empatato! nenhum ponto foi perdido`)
             }           
                 
         }
+
+        // Pequena pausa antes de anunciar o vencedor da rodada
+        await delay(500); // 0.5 segundos
 
          // verificando o vencedor
         if(totalTesteSkill1 > totalTesteSkill2){
@@ -165,13 +177,16 @@ async function playRaceEngine(personagem1, personagem2){
         }
 
         console.log(" ________________________________ ")
+        
+        // Pausa no final da rodada
+        await delay(1500); // 1.5 segundos
     }
 }
 
 async function declareCampeao(personagem1, personagem2){
-    console.log("Resultado final:")
-    console.log(`${personagem1.NOME}:${personagem1.PONTOS} ponto(s)`)
-    console.log(`${personagem2.NOME}:${personagem2.PONTOS} ponto(s)`)
+    console.log("\n🏆 Resultado final:")
+    console.log(`${personagem1.NOME}: ${personagem1.PONTOS} ponto(s)`)
+    console.log(`${personagem2.NOME}: ${personagem2.PONTOS} ponto(s)`)
 
     if(personagem1.PONTOS > personagem2.PONTOS){
         console.log(`\n${personagem1.NOME} venceu a corrida! Parabéns! 🏆`)
@@ -181,6 +196,7 @@ async function declareCampeao(personagem1, personagem2){
         console.log("A corrida terminou empatada!")
     };
 }
+
 // =========================================================== //
 // FUNÇÃO PRINCIPAL = com função AUTO-INVOCÁVEL
 // =========================================================== //
