@@ -1,4 +1,4 @@
-<h1>Desafio: Mario Kart.JS</h1>
+<h1>Desafio: Mario Kart com Node S</h1>
 
   <table>
         <tr>
